@@ -1,10 +1,19 @@
-# Data Description: IMDB popular movies data
+# Data Description: Spotify API Data
 
-We use the `IMDB_movies.csv` dataset available at 
-<https://github.com/reisanar/datasets/blob/master/IMDB_movies.csv>
+The data was converted from the following playlists:
 
-This dataset includes information of popular movies on IMDB in the last 10 years. 
+Trending: <https://open.spotify.com/playlist/6yOYKjOY6gXew3X9FlFgOq?si=ac90e7bae748422d>
 
-The data fields included are: Title, Genre, Description, Director, Actors, Year, Runtime, Rating, Votes, Revenue, Metascore (score of the movie on the metacritic website)
+2021: <https://open.spotify.com/playlist/7Dsek9LCxzopnC6abYf4u8?si=1f68cfd628d547cd>
 
-Below we include some basic statistics for this datasets, including dimensions and range of years:
+2020: <https://open.spotify.com/playlist/37i9dQZF1EMcF2CPOXSjDd?si=e683865f96dc428f>
+
+2019: <https://open.spotify.com/playlist/37i9dQZF1EtlcFPSOUHVSD?si=4c0113ffda9b4e8d>
+
+2018: <https://open.spotify.com/playlist/37i9dQZF1EjlY42WGCT8m7?si=15e535452bff4121>
+
+2017: <https://open.spotify.com/playlist/37i9dQZF1E9QlZfk6symid?si=497a47cb0b4a499e>
+
+These datasets include information of my top songs from the years 2017-2021, and 100 songs that are trending currently.
+
+The data fields analyzed are: danceability, energy, speechiness, acousticness, liveness, and valence
