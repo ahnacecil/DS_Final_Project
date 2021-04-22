@@ -4,10 +4,10 @@ output: html_notebook
 ---
 
 # Is my music taste bad?
-### An exploratory data analysis and comparison of the top 10 albums from 2016-2020 to my personal favorite albums
+### An exploratory data analysis and comparison of the top 100 songs trending currently to my top songs from 2017-2021 by year
 
 ## Introduction
-Music is one of the greatest forms of self-expression. You can learn a lot about a person based on their favorite artists and/or albums. 
+Music is one of the greatest forms of self-expression. You can learn a lot about a person based on their favorite songs and artists. 
 
 This made me wonder, what does my music taste say about me -- and is it objectively good or bad (in comparison to popular music, of course). Personally, I change up what I listen to based on the year.
 
@@ -15,13 +15,13 @@ The data for this analysis was collected using the Spotify API for the "Top Song
 
 This exploratory analysis will cover most of the audio features supplied by the Spotify API, including:
 
-- Danceabiity
-- Energy
-- Speechiness
-- Acousticness
-- Instrumentalness
-- Liveness
-- Valence
+- Danceabiity: "how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity," on a scale from 0 to 1
+- Energy: "a perceptual measure of intensity and activity," on a scale from 0 to 1
+- Speechiness: "speechiness detects the presence of spoken words in a track," on a scale from 0 to 1, 1 being entirely spoken
+- Acousticness: "whether the track is acoustic," on a scale from 0 to 1, 1 being acoustic
+- Instrumentalness: "predicts whether a track contains no vocals," on a scale from 0 to 1, 1 being instrumental
+- Liveness: "detects the presence of an audience in the recording," on a scale from 0 to 1, 1 being definitely a live performance
+- Valence: "describes the musical positiveness conveyed by a track," on a scale from 0 to 1
 
 
 ## Theory
@@ -45,7 +45,6 @@ Load the required packages:
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
-library(readr)
 ```
 
 ## Dataset
@@ -62,7 +61,7 @@ trending <- readRDS("ahna_trending.RDS")
 
 ## Data Filtering
 
-Here, I am selecting the factors I want to examine.
+Here, I am selecting the factors I want to examine and dropping any NA values.
 
 ```{r}
 new_2021 <- my_2021 %>%
@@ -90,9 +89,9 @@ new_trending <- trending %>%
   drop_na()
 ```
 
-## Rating Classification
+## Rating Classif-ication
 
-What is a good danceability of a popular album? What about energy? Loudness? To find our rating classification, I will take the quartiles (Q1, Q2(mean), Q3) for each factor and compare them to my own by year. 
+What is a good danceability of a popular song? What about energy? Loudness? To find our rating classification, I will take the quartiles (Q1, Q2(mean), Q3) for each factor and compare them to my own by year. 
 
 ```{r}
 q_trending <- data.frame(
@@ -403,7 +402,7 @@ scoring_total_2021(a_2021, b_2021, c_2021, d_2021, e_2021, f_2021)
 ```
 
 ## Conclusion
-Each yea
+
 ```{r}
 scores <- data.frame(
   factor = c("Danceability", "Energy", "Speechiness", "Acousticness", "Liveness", "Valence"),
@@ -419,5 +418,4 @@ scores %>%
   geom_col(aes(x = factor, y = value, color = year),
            position = "dodge")
 ```
-
 
