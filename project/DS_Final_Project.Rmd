@@ -4,12 +4,12 @@ output: html_notebook
 ---
 
 # Is my music taste bad?
-### An exploratory data analysis and comparison of the top 100 songs trending currently to my top songs from 2017-2021 by year
+### An exploratory data analysis and comparison of the most popular songs trending currently to my top songs from 2017-2021 by year
 
 ## Introduction
 Music is one of the greatest forms of self-expression. You can learn a lot about a person based on their favorite songs and artists. 
 
-This made me wonder, what does my music taste say about me -- and is it objectively good or bad (in comparison to popular music, of course). Personally, I change up what I listen to based on the year.
+This made me wonder, what does my music taste say about me -- and is it objectively good or bad (in comparison to popular music). Personally, I change up what I listen to based on the year.
 
 The data for this analysis was collected using the Spotify API for the "Top Songs - USA" playlist as well as my personal Spotify Wrapped playlists from 2017, 2018, 2019, and 2020. To incorporate my current music taste as of 2021, I complied 100 songs that I have been listening to so far this year. 
 
@@ -17,6 +17,7 @@ This exploratory analysis will cover most of the audio features supplied by the 
 
 - Danceabiity: "how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity," on a scale from 0 to 1
 - Energy: "a perceptual measure of intensity and activity," on a scale from 0 to 1
+- Loudness: "overall loudness of a track in decibels (dB)," on a scale from -60 to 0
 - Speechiness: "speechiness detects the presence of spoken words in a track," on a scale from 0 to 1, 1 being entirely spoken
 - Acousticness: "whether the track is acoustic," on a scale from 0 to 1, 1 being acoustic
 - Instrumentalness: "predicts whether a track contains no vocals," on a scale from 0 to 1, 1 being instrumental
@@ -25,7 +26,7 @@ This exploratory analysis will cover most of the audio features supplied by the 
 
 
 ## Theory
-The goal of this exploratory analysis is to see how my personal music compares to what is popular using the Spotify API data. I believe that my music taste is... interesting. It definitely is all over the place so I am intrigued as to how it compares.
+The goal of this exploratory analysis is to see how my personal music compares to what is popular using the Spotify API data. I believe that my music taste is... interesting. I will be looking at each factor listed above, finding mean values for each, and then comparing to my music by year. As my music taste varies drastically between years, I have classified each year into a genre, vibe, and my most listened-to artist. Does emo Ahna have the best taste? Pop Ahna? Rap Ahna? Let's find out.
 
 ### Classification of the "vibe" for each year
 |Year|Genre|Vibes|Top Artist|
@@ -36,8 +37,6 @@ The goal of this exploratory analysis is to see how my personal music compares t
 |2020|Electro-Pop|High-Energy|Quinn XCII|
 |2021|Chill-Pop|Vibey|Dominic Fike|
 
-I will be looking at each factor listed above, finding mean values for each, and then comparing to my music by year. Does emo Ahna have the best taste? Pop Ahna? Rap Ahna? Let's find out.
-
 ## Prerequisites
 
 Load the required packages:
@@ -45,6 +44,9 @@ Load the required packages:
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(scales)
+library(viridis)
+library(ggridges)
 ```
 
 ## Dataset
@@ -61,361 +63,478 @@ trending <- readRDS("ahna_trending.RDS")
 
 ## Data Filtering
 
-Here, I am selecting the factors I want to examine and dropping any NA values.
+Here, I am selecting the factors I want to examine, rescaling each factor (0:100), and dropping any NA values.
+
+*The "track.popularity" column will be introduced in the Conclusion section.*
 
 ```{r}
 new_2021 <- my_2021 %>%
-  select(danceability, energy, speechiness, acousticness, liveness, valence, track.popularity, track.name) %>%
+  mutate(
+    danceability = rescale(my_2021$danceability, to = c(0,100)),
+    energy = rescale(my_2021$energy, to = c(0,100)),
+    loudness = rescale(my_2021$loudness, to = c(0,100)),
+    speechiness = rescale(my_2021$speechiness, to = c(0,100)),
+    acousticness = rescale(my_2021$acousticness, to = c(0,100)),
+    instrumentalness = rescale(my_2021$instrumentalness, to = c(0,100)),
+    liveness = rescale(my_2021$liveness, to = c(0,100)),
+    valence = rescale(my_2021$valence, to = c(0,100))) %>% 
+  select(danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence, track.popularity, track.name) %>%
   drop_na()
 
 new_2020 <- my_2020 %>%
-  select(danceability, energy, speechiness, acousticness, liveness, valence, track.popularity, track.name) %>%
+  mutate(
+    danceability = rescale(my_2020$danceability, to = c(0,100)),
+    energy = rescale(my_2020$energy, to = c(0,100)),
+    loudness = rescale(my_2020$loudness, to = c(0,100)),
+    speechiness = rescale(my_2020$speechiness, to = c(0,100)),
+    acousticness = rescale(my_2020$acousticness, to = c(0,100)),
+    instrumentalness = rescale(my_2020$instrumentalness, to = c(0,100)),
+    liveness = rescale(my_2020$liveness, to = c(0,100)),
+    valence = rescale(my_2020$valence, to = c(0,100))) %>% 
+  select(danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence, track.popularity, track.name) %>%
   drop_na()
 
 new_2019 <- my_2019 %>%
-  select(danceability, energy, speechiness, acousticness, liveness, valence, track.popularity, track.name) %>%
+  mutate(
+    danceability = rescale(my_2019$danceability, to = c(0,100)),
+    energy = rescale(my_2019$energy, to = c(0,100)),
+    loudness = rescale(my_2019$loudness, to = c(0,100)),
+    speechiness = rescale(my_2019$speechiness, to = c(0,100)),
+    acousticness = rescale(my_2019$acousticness, to = c(0,100)),
+    instrumentalness = rescale(my_2019$instrumentalness, to = c(0,100)),
+    liveness = rescale(my_2019$liveness, to = c(0,100)),
+    valence = rescale(my_2019$valence, to = c(0,100))) %>% 
+  select(danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence, track.popularity, track.name) %>%
   drop_na()
 
 new_2018 <- my_2018 %>%
-  select(danceability, energy, speechiness, acousticness, liveness, valence, track.popularity, track.name) %>%
+  mutate(
+    danceability = rescale(my_2018$danceability, to = c(0,100)),
+    energy = rescale(my_2018$energy, to = c(0,100)),
+    loudness = rescale(my_2018$loudness, to = c(0,100)),
+    speechiness = rescale(my_2018$speechiness, to = c(0,100)),
+    acousticness = rescale(my_2018$acousticness, to = c(0,100)),
+    instrumentalness = rescale(my_2018$instrumentalness, to = c(0,100)),
+    liveness = rescale(my_2018$liveness, to = c(0,100)),
+    valence = rescale(my_2018$valence, to = c(0,100))) %>% 
+  select(danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence, track.popularity, track.name) %>%
   drop_na()
 
 new_2017 <- my_2017 %>%
-  select(danceability, energy, speechiness, acousticness, liveness, valence, track.popularity, track.name) %>%
+  mutate(
+    danceability = rescale(my_2017$danceability, to = c(0,100)),
+    energy = rescale(my_2017$energy, to = c(0,100)),
+    loudness = rescale(my_2017$loudness, to = c(0,100)),
+    speechiness = rescale(my_2017$speechiness, to = c(0,100)),
+    acousticness = rescale(my_2017$acousticness, to = c(0,100)),
+    instrumentalness = rescale(my_2017$instrumentalness, to = c(0,100)),
+    liveness = rescale(my_2017$liveness, to = c(0,100)),
+    valence = rescale(my_2017$valence, to = c(0,100))) %>% 
+  select(danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence, track.popularity, track.name) %>%
   drop_na()
 
 new_trending <- trending %>%
-  select(danceability, energy, speechiness, acousticness, liveness, valence, track.popularity, track.name) %>%
-  drop_na()
+  mutate(
+    danceability = rescale(trending$danceability, to = c(0,100)),
+    energy = rescale(trending$energy, to = c(0,100)),
+    loudness = rescale(trending$loudness, to = c(0,100)),
+    speechiness = rescale(trending$speechiness, to = c(0,100)),
+    acousticness = rescale(trending$acousticness, to = c(0,100)),
+    instrumentalness = rescale(trending$instrumentalness, to = c(0,100)),
+    liveness = rescale(trending$liveness, to = c(0,100)),
+    valence = rescale(trending$valence, to = c(0,100))) %>% 
+  select(danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence, track.popularity, track.name) %>%
+  drop_na() 
 ```
 
-## Rating Classif-ication
+## Rating Classification
 
-What is a good danceability of a popular song? What about energy? Loudness? To find our rating classification, I will take the quartiles (Q1, Q2(mean), Q3) for each factor and compare them to my own by year. 
+While there are eight factors being analyzed for this exploration, not every one is necessarily essential to making an objectively "good" or popular song. Here, I am breaking down which factors are most important and prevalent in the trending dataframe.
 
 ```{r}
-q_trending <- data.frame(
-  q_danceability = quantile(new_trending[["danceability"]], probs = seq(0, 1, 0.25), na.rm = T),
-  q_energy = quantile(new_trending[["energy"]], probs = seq(0, 1, 0.25), na.rm = T),
-  q_speechiness = quantile(new_trending[["speechiness"]], probs = seq(0, 1, 0.25), na.rm = T),
-  q_acousticness = quantile(new_trending[["acousticness"]], probs = seq(0, 1, 0.25), na.rm = T),
-  q_liveness = quantile(new_trending[["liveness"]], probs = seq(0, 1, 0.25), na.rm = T),
-  q_valence = quantile(new_trending[["valence"]], probs = seq(0, 1, 0.25), na.rm = T)
-)
-q_trending
+new_trending %>% 
+  select(danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence) %>% 
+  gather(key = "factor", value = "value") %>% 
+  mutate(factor = fct_reorder(factor, value)) %>% 
+  ggplot() +
+  geom_density_ridges(aes(x = value, y = factor, fill = factor)) +
+  theme_minimal() +
+  labs(x = "Value", y = "Factor", title = "Variation of Each Factor, Trending") +
+  theme(
+    legend.position = "none")
 ```
+
+The visualization above shows the variation of each factor after being rescaled. Some factors are clustered, like speechiness and instrumentalness, and others are much more spread out. To create a consistent scoring method, the outliers must be removed.
+
+```{r}
+outliers <- function(x) { #function to determine which values are outliers
+  Q1 <- quantile(x, probs = 0.25)
+  Q3 <- quantile(x, probs = 0.75)
+  iqr = Q3 - Q1
+  upper = Q3 + (iqr * 1.5)
+  lower = Q1 - (iqr * 1.5)
+  x > upper | x < lower
+}
+
+remove_outliers <- function(df, cols = names(df)) { #function to remove outliers from dataframe
+  for(col in cols) {
+    df <- df[!outliers(df[[col]]), ]
+  }
+  df
+}
+
+new_trending <- remove_outliers(new_trending, c("danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence"))
+```
+
+Now that the outliers have been filtered from the dataset, we can calculate the standard deviation for each factor.
+ 
+```{r}
+#taking standard deviation for each factor and making it into a wide dataframe
+sd_trending <- data.frame( 
+  danceability = sd(new_trending[["danceability"]]),
+  energy = sd(new_trending[["energy"]]),
+  loudness = sd(new_trending[["loudness"]]),
+  speechiness = sd(new_trending[["speechiness"]]),
+  acousticness = sd(new_trending[["acousticness"]]),
+  instrumentalness = sd(new_trending[["instrumentalness"]]),
+  liveness = sd(new_trending[["liveness"]]),
+  valence = sd(new_trending[["valence"]]))
+```
+
+```{r}
+sd_trending %>%
+  gather(key = "factor", value = "standard_deviation") %>% #converting from wide to long format
+  mutate(factor = fct_reorder(factor, standard_deviation)) %>% #reordering data by standard deviation
+  ggplot(aes(x = factor, y = standard_deviation, fill = factor)) +
+  geom_bar(stat = "identity", width = 0.2) +
+  labs(x = "Factor", y = "Standard Deviation", title = "Standard Deviation of Each Factor (Trending)") +
+  coord_flip() +
+  theme_minimal() +
+  theme(
+    legend.position = "none")
+```
+From the above visualization, it can be seen that after filtering instrumentalness has no standard deviation. As the scoring is based off of how many standard deviations the value is from the mean, it would be impossible to score in this category. Therefore, it will be removed from this point on.
 
 ## Scoring 
 
-The goal is to analyze each factor for each year and compare it to the quartile values of the trending songs. Because every song on this particular playlist is trending, the peak value for scoring is around the mean, and decreases as it furthers from the mean value. This is taken into account to make the following scoring guidelines:
+What is a good score for danceability of a popular song? What about energy? Liveness? To find the rating classification, I will take the mean values and standard deviation of each factor from the trending playlist, and incorporate them into a scoring scale. The goal is to analyze each factor by year and compare it to the mean value for that particular factor from the trending playlist. 
 
-||0<=X<Q0|Q0<=X<Q1|Q1<=X<Q2|Q2<=X<Q3|Q3<=X<Q4|Q4<=X<=1|
-|:----:|:-:|:-:|:-:|:-:|:--:|:--:|
-|Score|0|1|2|2|1|0|
+Due to the standard deviations being so high, I will divide them into subgroups to provide a more strict scale. The peak value for scoring is one-fifth of a standard deviation from the mean, and decreases as it furthers from the mean value. The absolute value of the score is taken into account for the total score. The negative values signify if the value was above or below the mean.
+
+|Number of Standard Deviations from the Mean|Score|
+|:-:|:-:|:-:|:-:|:-:|
+|1/5|5|
+|1/4|4|
+|1/3|3|
+|1/2|2|
+|1|1|
+|>1|0|
 
 ```{r}
-scoring_danceability <- function(danceability) {
-  if(danceability >= 0 && danceability < 0.331) {
-    return(0)
+scoring <- function(value, mean, sd_value) { #function accepts the mean value for the year's playlist, the mean value for the trending playlist, and the standard deviation for that particular factor, and returns a score from 0 to 5
+  if(value >= (mean - sd_value/5) && value <= mean){
+    return(-5)
   }
-  else if(danceability >= 0.331 && danceability < 0.5845) {
-    return(1)
+  else if(value >= (mean - sd_value/4) && value <= (mean - sd_value/5)){
+    return(-4)
   }
-  else if(danceability >= 0.5845 && danceability < 0.7010) {
+  else if(value >= (mean - sd_value/3) && value <= (mean - sd_value/4)){
+    return(-3)
+  }
+  else if(value >= (mean - sd_value/2) && value <= (mean - sd_value/3)){
+    return(-2)
+  }
+  else if(value >= (mean - sd_value) && value <= (mean - sd_value/2)){
+    return(-1)
+  }
+  else if(value >= mean && value <= (mean + sd_value/5)){
+    return(5)
+  }
+  else if(value >= (mean + sd_value/5) && value <= (mean + sd_value/4)){
+    return(4)
+  }
+  else if(value >= (mean + sd_value/4) && value <= (mean + sd_value/3)){
+    return(3)
+  }
+  else if(value >= (mean + sd_value/3) && value <= (mean + sd_value/2)){
     return(2)
   }
-  else if(danceability >= 0.7010 && danceability < 0.7810) {
-    return(2)
-  }
-  else if(danceability >= 0.7810 && danceability < 0.9650) {
+  else if(value >= (mean + sd_value/2) && value <= (mean + sd_value)){
     return(1)
   }
-  else if(danceability >= 0.9650 && danceability < 1) {
+  else {
     return(0)
   }
 }
 ```
 
-```{r}
-scoring_energy <- function(energy) {
-  if(energy >= 0 && energy < 0.2250) {
-    return(0)
-  }
-  else if(energy >= 0.2250 && energy < 0.5365) {
-    return(1)
-  }
-  else if(energy >= 0.5365 && energy < 0.6175) {
-    return(2)
-  }
-  else if(energy >= 0.6175 && energy < 0.7230) {
-    return(2)
-  }
-  else if(energy > 0.7230 && energy <= 0.9340) {
-    return(1)
-  }
-  else if(energy > 0.9340 && danceability <= 1) {
-    return(0)
-  }
-}
-```
+## Calculations
+
+### Example using trending playlist
+
+Because the scoring is calculated based off of the mean values of the trending songs, the trending playlist has a perfect score of 40, as seen here:
 
 ```{r}
-scoring_speechiness <- function(speechiness) {
-  if(speechiness >= 0 && speechiness < 0.02360) {
-    return(0)
-  }
-  else if(speechiness >= 0.02360 && speechiness < 0.03850) {
-    return(1)
-  }
-  else if(speechiness >= 0.03850 && speechiness < 0.06885) {
-    return(2)
-  }
-  else if(speechiness >= 0.06885 && speechiness < 0.17425) {
-    return(2)
-  }
-  else if(speechiness > 0.17425 && speechiness <= 0.55900) {
-    return(1)
-  }
-  else if(speechiness > 0.55900 && speechiness <= 1) {
-    return(0)
-  }
-}
-```
+scores_trending <- c(
+  a <- scoring(mean(new_trending[["danceability"]]), mean(new_trending[["danceability"]]), sd_trending[["danceability"]]),
+  b <- scoring(mean(new_trending[["energy"]]), mean(new_trending[["energy"]]), sd_trending[["energy"]]),
+  c <- scoring(mean(new_trending[["loudness"]]), mean(new_trending[["loudness"]]), sd_trending[["loudness"]]),
+  d <- scoring(mean(new_trending[["speechiness"]]), mean(new_trending[["speechiness"]]), sd_trending[["speechiness"]]),
+  e <- scoring(mean(new_trending[["acousticness"]]), mean(new_trending[["acousticness"]]), sd_trending[["acousticness"]]),
+  f <- scoring(mean(new_trending[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
+  g <- scoring(mean(new_trending[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-```{r}
-scoring_acousticness <- function(acousticness) {
-  if(acousticness >= 0 && acousticness < 0.000602) {
-    return(0)
-  }
-  else if(acousticness >= 0.000602 && acousticness < 0.021425) {
-    return(1)
-  }
-  else if(acousticness >= 0.021425 && acousticness < 0.133000) {
-    return(2)
-  }
-  else if(acousticness >= 0.133000 && acousticness < 0.285500) {
-    return(2)
-  }
-  else if(acousticness > 0.285500 && acousticness <= 0.833000) {
-    return(1)
-  }
-  else if(acousticness > 0.833000 && acousticness <= 1) {
-    return(0)
-  }
-}
-```
 
-```{r}
-scoring_liveness <- function(liveness) {
-  if(liveness >= 0 && liveness < 0.046100) {
-    return(0)
-  }
-  else if(liveness >= 0.046100 && liveness < 0.096975) {
-    return(1)
-  }
-  else if(liveness >= 0.096975 && liveness < 0.120000) {
-    return(2)
-  }
-  else if(liveness >= 0.120000 && liveness < 0.185500) {
-    return(2)
-  }
-  else if(liveness > 0.185500 && liveness <= 0.688000) {
-    return(1)
-  }
-  else if(liveness > 0.688000 && liveness <= 1) {
-    return(0)
-  }
-}
-```
-
-```{r}
-scoring_valence <- function(valence) {
-  if(valence >= 0 && valence < 0.06280) {
-    return(0)
-  }
-  else if(valence >= 0.06280 && valence < 0.34075) {
-    return(1)
-  }
-  else if(valence >= 0.34075 && valence < 0.48100) {
-    return(2)
-  }
-  else if(valence >= 0.48100 && valence < 0.64175) {
-    return(2)
-  }
-  else if(valence > 0.64175 && valence <= 0.93400) {
-    return(1)
-  }
-  else if(valence > 0.93400 && valence <= 1) {
-    return(0)
-  }
-}
-```
-
-Because the scoring is calculated based off of the mean values of the trending songs, the trending playlist has a perfect score of 12, as seen here:
-
-```{r}
-scoring_total_trending <- function(a, b, c, d, e, f){
- a = scoring_danceability(mean(new_trending[["danceability"]]))
- b = scoring_energy(mean(new_trending[["energy"]]))
- c = scoring_speechiness(mean(new_trending[["speechiness"]]))
- d = scoring_acousticness(mean(new_trending[["acousticness"]]))
- e = scoring_liveness(mean(new_trending[["liveness"]]))
- f = scoring_valence(mean(new_trending[["valence"]]))
- return(sum(a,b,c,d,e,f))
-}
-scoring_total_trending(a, b, c, d, e, f)
+sum(abs(a), abs(b), abs(c), abs(d), abs(e), abs(f), abs(g))
 
 ```
-
-## Analysis
 
 ### The year of sad: 2017
 
 ```{r}
- a_2017 <- scoring_danceability(mean(new_2017[["danceability"]]))
- b_2017 <- scoring_energy(mean(new_2017[["energy"]]))
- c_2017 <- scoring_speechiness(mean(new_2017[["speechiness"]]))
- d_2017 <- scoring_acousticness(mean(new_2017[["acousticness"]]))
- e_2017 <- scoring_liveness(mean(new_2017[["liveness"]]))
- f_2017 <- scoring_valence(mean(new_2017[["valence"]]))
-```
+scores_2017 <- c( #runs each factor into the scoring algorithm and assigns the value to a vector
+  a_2017 <- scoring(mean(new_2017[["danceability"]]), mean(new_trending[["danceability"]]), sd_trending[["danceability"]]),
+  b_2017 <- scoring(mean(new_2017[["energy"]]), mean(new_trending[["energy"]]), sd_trending[["energy"]]),
+  c_2017 <- scoring(mean(new_2017[["loudness"]]), mean(new_trending[["loudness"]]), sd_trending[["loudness"]]),
+  d_2017 <- scoring(mean(new_2017[["speechiness"]]), mean(new_trending[["speechiness"]]), sd_trending[["speechiness"]]),
+  e_2017 <- scoring(mean(new_2017[["acousticness"]]), mean(new_trending[["acousticness"]]), sd_trending[["acousticness"]]),
+  f_2017 <- scoring(mean(new_2017[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
+  g_2017 <- scoring(mean(new_2017[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-```{r}
-scoring_2017 <- c(a_2017, b_2017, c_2017, d_2017, e_2017, f_2017)
-```
-
-
-Putting the 2017 playlist through the scoring algorithm produces the value of 10, as seen here:
-
-```{r}
-scoring_total_2017 <- function(a, b, c, d, e, f){
- return(sum(a,b,c,d,e,f))
-}
-scoring_total_2017(a_2017, b_2017, c_2017, d_2017, e_2017, f_2017)
+sum_2017 <- sum(abs(a_2017), abs(b_2017), abs(c_2017), abs(d_2017), abs(e_2017), abs(f_2017), abs(g_2017))
 ```
 
 
 ### The year of happy: 2018
 
 ```{r}
- a_2018 <- scoring_danceability(mean(new_2018[["danceability"]]))
- b_2018 <- scoring_energy(mean(new_2018[["energy"]]))
- c_2018 <- scoring_speechiness(mean(new_2018[["speechiness"]]))
- d_2018 <- scoring_acousticness(mean(new_2018[["acousticness"]]))
- e_2018 <- scoring_liveness(mean(new_2018[["liveness"]]))
- f_2018 <- scoring_valence(mean(new_2018[["valence"]]))
-```
+scores_2018 <- c(
+  a_2018 <- scoring(mean(new_2018[["danceability"]]), mean(new_trending[["danceability"]]), sd_trending[["danceability"]]),
+  b_2018 <- scoring(mean(new_2018[["energy"]]), mean(new_trending[["energy"]]), sd_trending[["energy"]]),
+  c_2018 <- scoring(mean(new_2018[["loudness"]]), mean(new_trending[["loudness"]]), sd_trending[["loudness"]]),
+  d_2018 <- scoring(mean(new_2018[["speechiness"]]), mean(new_trending[["speechiness"]]), sd_trending[["speechiness"]]),
+  e_2018 <- scoring(mean(new_2018[["acousticness"]]), mean(new_trending[["acousticness"]]), sd_trending[["acousticness"]]),
+  f_2018 <- scoring(mean(new_2018[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
+  g_2018 <- scoring(mean(new_2018[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-```{r}
-scoring_2018 <- c(a_2018, b_2018, c_2018, d_2018, e_2018, f_2018)
-```
-
-
-Putting the 2018 playlist through the scoring algorithm produces a perfect score of 12, as seen here:
-
-```{r}
-scoring_total_2018 <- function(a, b, c, d, e, f){
- return(sum(a,b,c,d,e,f))
-}
-scoring_total_2017(a_2018, b_2018, c_2018, d_2018, e_2018, f_2018)
+sum_2018 <- sum(abs(a_2018), abs(b_2018), abs(c_2018), abs(d_2018), abs(e_2018), abs(f_2018), abs(g_2018))
 ```
 
 ### The year of questionable decisions: 2019
 
-
 ```{r}
- a_2019 <- scoring_danceability(mean(new_2019[["danceability"]]))
- b_2019 <- scoring_energy(mean(new_2019[["energy"]]))
- c_2019 <- scoring_speechiness(mean(new_2019[["speechiness"]]))
- d_2019 <- scoring_acousticness(mean(new_2019[["acousticness"]]))
- e_2019 <- scoring_liveness(mean(new_2019[["liveness"]]))
- f_2019 <- scoring_valence(mean(new_2019[["valence"]]))
+scores_2019 <- c(
+  a_2019 <- scoring(mean(new_2019[["danceability"]]), mean(new_trending[["danceability"]]), sd_trending[["danceability"]]),
+  b_2019 <- scoring(mean(new_2019[["energy"]]), mean(new_trending[["energy"]]), sd_trending[["energy"]]),
+  c_2019 <- scoring(mean(new_2019[["loudness"]]), mean(new_trending[["loudness"]]), sd_trending[["loudness"]]),
+  d_2019 <- scoring(mean(new_2019[["speechiness"]]), mean(new_trending[["speechiness"]]), sd_trending[["speechiness"]]),
+  e_2019 <- scoring(mean(new_2019[["acousticness"]]), mean(new_trending[["acousticness"]]), sd_trending[["acousticness"]]),
+  f_2019 <- scoring(mean(new_2019[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
+  g_2019 <- scoring(mean(new_2019[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
+
+sum_2019 <- sum(abs(a_2019), abs(b_2019), abs(c_2019), abs(d_2019), abs(e_2019), abs(f_2019), abs(g_2019))
 ```
-
-
-```{r}
-scoring_2019 <- c(a_2019, b_2019, c_2019, d_2019, e_2019, f_2019)
-```
-
-
-Putting the 2019 playlist through the scoring algorithm produces a score of 10, as seen here:
-
-```{r}
-scoring_total_2019 <- function(a, b, c, d, e, f){
- return(sum(a,b,c,d,e,f))
-}
-scoring_total_2019(a_2019, b_2019, c_2019, d_2019, e_2019, f_2019)
-```
-
 
 ### The year of chaotic energy: 2020
 
 ```{r}
- a_2020 <- scoring_danceability(mean(new_2020[["danceability"]]))
- b_2020 <- scoring_energy(mean(new_2020[["energy"]]))
- c_2020 <- scoring_speechiness(mean(new_2020[["speechiness"]]))
- d_2020 <- scoring_acousticness(mean(new_2020[["acousticness"]]))
- e_2020 <- scoring_liveness(mean(new_2020[["liveness"]]))
- f_2020 <- scoring_valence(mean(new_2020[["valence"]]))
+scores_2020 <- c(
+  a_2020 <- scoring(mean(new_2020[["danceability"]]), mean(new_trending[["danceability"]]), sd_trending[["danceability"]]),
+  b_2020 <- scoring(mean(new_2020[["energy"]]), mean(new_trending[["energy"]]), sd_trending[["energy"]]),
+  c_2020 <- scoring(mean(new_2020[["loudness"]]), mean(new_trending[["loudness"]]), sd_trending[["loudness"]]),
+  d_2020 <- scoring(mean(new_2020[["speechiness"]]), mean(new_trending[["speechiness"]]), sd_trending[["speechiness"]]),
+  e_2020 <- scoring(mean(new_2020[["acousticness"]]), mean(new_trending[["acousticness"]]), sd_trending[["acousticness"]]),
+  f_2020 <- scoring(mean(new_2020[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
+  g_2020 <- scoring(mean(new_2020[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
+
+sum_2020 <- sum(abs(a_2020), abs(b_2020), abs(c_2020), abs(d_2020), abs(e_2020), abs(f_2020), abs(g_2020))
 ```
-
-
-```{r}
-scoring_2020 <- c(a_2020, b_2020, c_2020, d_2020, e_2020, f_2020)
-```
-
-
-Putting the 2020 playlist through the scoring algorithm produces a score of 10, as seen here:
-
-```{r}
-scoring_total_2020 <- function(a, b, c, d, e, f){
- return(sum(a,b,c,d,e,f))
-}
-scoring_total_2020(a_2020, b_2020, c_2020, d_2020, e_2020, f_2020)
-```
-
 
 ### The year of immaculate vibes: 2021
 
 ```{r}
- a_2021 <- scoring_danceability(mean(new_2021[["danceability"]]))
- b_2021 <- scoring_energy(mean(new_2021[["energy"]]))
- c_2021 <- scoring_speechiness(mean(new_2021[["speechiness"]]))
- d_2021 <- scoring_acousticness(mean(new_2021[["acousticness"]]))
- e_2021 <- scoring_liveness(mean(new_2021[["liveness"]]))
- f_2021 <- scoring_valence(mean(new_2021[["valence"]]))
+scores_2021 <- c(
+  a_2021 <- scoring(mean(new_2021[["danceability"]]), mean(new_trending[["danceability"]]), sd_trending[["danceability"]]),
+  b_2021 <- scoring(mean(new_2021[["energy"]]), mean(new_trending[["energy"]]), sd_trending[["energy"]]),
+  c_2021 <- scoring(mean(new_2021[["loudness"]]), mean(new_trending[["loudness"]]), sd_trending[["loudness"]]),
+  d_2021 <- scoring(mean(new_2021[["speechiness"]]), mean(new_trending[["speechiness"]]), sd_trending[["speechiness"]]),
+  e_2021 <- scoring(mean(new_2021[["acousticness"]]), mean(new_trending[["acousticness"]]), sd_trending[["acousticness"]]),
+  f_2021 <- scoring(mean(new_2021[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
+  g_2021 <- scoring(mean(new_2021[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
+
+sum_2021 <- sum(abs(a_2021), abs(b_2021), abs(c_2021), abs(d_2021), abs(e_2021), abs(f_2021), abs(g_2021))
 ```
 
+## Findings
+
+To begin analyzing each year, I first am combining all of the scores for each factor by year into one wide dataframe.
 
 ```{r}
-scoring_2021 <- c(a_2021, b_2021, c_2021, d_2021, e_2021, f_2021)
-```
-
-
-Putting the 2020 playlist through the scoring algorithm produces a score of 11, as seen here:
-
-```{r}
-scoring_total_2021 <- function(a, b, c, d, e, f){
- return(sum(a,b,c,d,e,f))
-}
-scoring_total_2021(a_2021, b_2021, c_2021, d_2021, e_2021, f_2021)
-```
-
-## Conclusion
-
-```{r}
-scores <- data.frame(
-  factor = c("Danceability", "Energy", "Speechiness", "Acousticness", "Liveness", "Valence"),
-  scoring_2017, scoring_2018, scoring_2019, scoring_2020, scoring_2021
+scores <- data.frame( 
+  factor = c("Danceability", "Energy", "Loudness", "Speechiness", "Acousticness", "Liveness", "Valence"),
+  scores_2017, scores_2018, scores_2019, scores_2020, scores_2021
 )
-scores
 ```
+
+### The year of sad: 2017
 
 ```{r}
 scores %>%
-  pivot_longer(cols = c(scoring_2017, scoring_2018, scoring_2019, scoring_2020, scoring_2021), names_to = "year") %>%
+  select(factor, scores_2017) %>% 
+  mutate(factor = fct_reorder(factor, scores_2017)) %>% #reordering data by score
   ggplot() +
-  geom_col(aes(x = factor, y = value, color = year),
-           position = "dodge")
+  geom_point(aes(x = factor, y = scores_2017), color = "black") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2017), color = "purple") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor for 2017") +
+  coord_flip() +
+  theme_minimal()
 ```
+First is the year of sad (2017), which scored a 28 out of a possible 35. This year came in second place, and considering the songs on this particular playlist, that is very surprising. It had above average energy, and below average valence and danceability. As valence is the overall "positiveness" of a song, the low rating corresponds to the determined vibe of the playlist.
+
+### The year of happy: 2018
+
+```{r}
+scores %>%
+  select(factor, scores_2018) %>% 
+  mutate(factor = fct_reorder(factor, scores_2018)) %>% #reordering data by score
+  ggplot() +
+  geom_point(aes(x = factor, y = scores_2018), color = "black") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2018), color = "purple") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor for 2018") +
+  coord_flip() +
+  theme_minimal()
+```
+In first place, the year of happy (2018) scored a 30 out of the possible 35. This year received perfect scores in all categories except for two. This particular playlist was characterized by bubbly-pop music, which explains why it is lacking in speechiness and loudness. However, the rest of the factors pertaining to this playlist are right on par to what is currently popular.
+
+### The year of questionable decisions: 2019
+
+```{r}
+scores %>%
+  select(factor, scores_2019) %>% 
+  mutate(factor = fct_reorder(factor, scores_2019)) %>% #reordering data by score
+  ggplot() +
+  geom_point(aes(x = factor, y = scores_2019), color = "black") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2019), color = "purple") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor for 2019") +
+  coord_flip() +
+  theme_minimal()
+```
+
+Surprisingly, the year of questionable decisions (2019), did not score low. With a score of 24 out of the possible 35, this playlist was mainly brought down by the lower-than-average acousticness and the higher-than-average loudness values. Juice WRLD would be proud.
+
+### The year of chaotic energy: 2020
+
+```{r}
+scores %>%
+  select(factor, scores_2020) %>% 
+  mutate(factor = fct_reorder(factor, scores_2020)) %>% #reordering data by score
+  ggplot() +
+  geom_point(aes(x = factor, y = scores_2020), color = "black") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2020), color = "purple") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor for 2020") +
+  coord_flip() +
+  theme_minimal()
+```
+The year of chaotic energy (2020), scored in last place at 19 out of the possible 35. While the energy and danceability of this electro-pop playlist were within 1/5 of a standard deviation from the trending-mean, every other factor brough the overall score down significantly. This playlist had above-average ratings in every category except for energy.
+
+### The year of immaculate vibes: 2021
+
+```{r}
+scores %>%
+  select(factor, scores_2021) %>% 
+  mutate(factor = fct_reorder(factor, scores_2021)) %>% #reordering data by score
+  ggplot() +
+  geom_point(aes(x = factor, y = scores_2021), color = "black") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2021), color = "purple") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor for 2021") +
+  coord_flip() +
+  theme_minimal()
+```
+
+Finally, receiving a score of 24 is the year of immaculate vibes (2021). This playlist had above-average liveness and acousticness that was significantly distant from the mean which brought down the total score. 
+
+## Conclusion
+
+### Relationship between each year and individual scores
+
+```{r}
+scores %>% 
+  pivot_longer(cols = c(scores_2017, scores_2018, scores_2019, scores_2020, scores_2021), names_to = "year") %>%
+  ggplot() +
+  geom_point(aes(x = year, y = value, color = factor)) +
+  geom_segment(aes(x = year, xend = year, y = 0, yend = value)) +
+  theme_minimal() +
+  labs(x = " ", y = " ", title = "Scores for Each Year, Arranged by Factor") +
+  facet_wrap(~factor) +
+  theme(
+    legend.position = "none",
+    panel.spacing = unit(0.05, "lines")
+  ) +
+  coord_flip()
+  
+```
+In the above visualization, the most consistent factor was valence amongst each year. This means that for every year excluding 2017, the overall "vibe" was happy and upbeat. Besides this factor, there is no correlation between years for the other factors.
+
+
+### Relationship between each year and total scores
+
+```{r}
+sum_scores <- data.frame( #creates a dataframe for total score by year
+  year = c(2017:2021),
+  score = c(sum_2017, sum_2018, sum_2019, sum_2020, sum_2021)
+)
+```
+
+```{r}
+sum_scores %>%
+  ggplot(aes(x = year, y = score)) +
+  geom_line(color = "grey") +
+  geom_point(color = "black", fill = "purple", shape = 21, size = 3) +
+  labs(x = "Year", y = "Score", title = "Total Score by Year") +
+  theme_minimal()
+```
+As shown above, there is a trend between progression of time and my personal music taste worsening in relation to popular music.
+
+### Relationship Between Popularity Rating and Total Score
+Each song in every playlist has a popularity rating assigned to it through the Spotify API. Which year's playlist is the most popular according to the Spotify API, and does this have anything to do with the final scores in relation to the trending playlist? 
+
+```{r}
+popularity_rating <- data.frame( #takes mean popularity score by year and compiles it into a dataframe
+  year = c(2017:2021),
+  rating = c(
+    mean(new_2017[["track.popularity"]]),
+    mean(new_2018[["track.popularity"]]),
+    mean(new_2019[["track.popularity"]]),
+    mean(new_2020[["track.popularity"]]),
+    mean(new_2021[["track.popularity"]])
+  )
+)
+```
+
+```{r}
+sum_scaled <- data.frame( #rescales the sum_scores dataframe from 0 to 100 for ease of comparison
+  year = c(2017:2021),
+  score = rescale(sum_scores$score, to = c(0, 100)))
+```
+
+
+```{r}
+ggplot() +
+  geom_line(data = popularity_rating, aes(x = year, y = rating), color = "black") +
+  geom_line(data = sum_scaled, aes(x = year, y = score), color = "purple") +
+  geom_line(data = )
+  theme_minimal() +
+  labs(x = "Year", y = "Rating (out of 100)", title = "Popularity Rating and Total Score by Year")
+```
+
+From the above visualization, it can be seen that the popularity rating (in black) remains somewhat consistent at about 50 through the years. Despite this, the playlists' scores for each year (in purple), calculated according to the top songs on the trending playlist vary significantly. Based on this, it can be concluded that there is no correlation between the popularity rating of my personal songs and a "good" song according to what is popular. This means that a song can be classified as "good" without necessarily being popular.
+
+## Is my music taste bad?
+
+Objectively speaking based off of my calculations, yes. My music taste correlated the most with what is currently popular today in 2018. From there it has gotten progressively worse in relation to trending music today. This can be attributed to me straying from what plays on the radio to exclusively listening to what I find on Spotify.  
+
+
+
+
+
 
