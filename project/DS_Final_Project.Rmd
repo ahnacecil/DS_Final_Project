@@ -4,7 +4,7 @@ output: html_notebook
 ---
 
 # Is my music taste bad?
-### An exploratory data analysis and comparison of the most popular songs trending currently to my top songs from 2017-2021 by year
+### *An exploratory data analysis and comparison of the most popular songs trending currently to my top songs from 2017-2021 by year*
 
 ## Introduction
 Music is one of the greatest forms of self-expression. You can learn a lot about a person based on their favorite songs and artists. 
@@ -13,24 +13,12 @@ This made me wonder, what does my music taste say about me -- and is it objectiv
 
 The data for this analysis was collected using the Spotify API for the "Top Songs - USA" playlist as well as my personal Spotify Wrapped playlists from 2017, 2018, 2019, and 2020. To incorporate my current music taste as of 2021, I complied 100 songs that I have been listening to so far this year. 
 
-This exploratory analysis will cover most of the audio features supplied by the Spotify API, including:
-
-- Danceabiity: "how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity," on a scale from 0 to 1
-- Energy: "a perceptual measure of intensity and activity," on a scale from 0 to 1
-- Loudness: "overall loudness of a track in decibels (dB)," on a scale from -60 to 0
-- Speechiness: "speechiness detects the presence of spoken words in a track," on a scale from 0 to 1, 1 being entirely spoken
-- Acousticness: "whether the track is acoustic," on a scale from 0 to 1, 1 being acoustic
-- Instrumentalness: "predicts whether a track contains no vocals," on a scale from 0 to 1, 1 being instrumental
-- Liveness: "detects the presence of an audience in the recording," on a scale from 0 to 1, 1 being definitely a live performance
-- Valence: "describes the musical positiveness conveyed by a track," on a scale from 0 to 1
-
-
 ## Theory
-The goal of this exploratory analysis is to see how my personal music compares to what is popular using the Spotify API data. I believe that my music taste is... interesting. I will be looking at each factor listed above, finding mean values for each, and then comparing to my music by year. As my music taste varies drastically between years, I have classified each year into a genre, vibe, and my most listened-to artist. Does emo Ahna have the best taste? Pop Ahna? Rap Ahna? Let's find out.
+The goal of this exploratory analysis is to see how my personal music compares to what is popular using the Spotify API data. I believe that my music taste is... interesting. I will be looking at each factor provided by the datasets, finding mean values for each, and then comparing to my music by year. As my music taste varies drastically between years, I have classified each year into a genre, vibe, and my most listened-to artist. Does emo Ahna have the best taste? Pop Ahna? Rap Ahna? Let's find out.
 
 ### Classification of the "vibe" for each year
 |Year|Genre|Vibes|Top Artist|
-|:---:|:---:|:----:|:--:|
+|:---|:---|:----|:--|
 |2017|Alt-Rock|Emo|Bring Me The Horizon|
 |2018|Happy-Pop|Happy|AJR|
 |2019|Emo-Rap|Questionable|Juice Wrld|
@@ -45,7 +33,6 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(scales)
-library(viridis)
 library(ggridges)
 ```
 
@@ -61,11 +48,26 @@ my_2017 <- readRDS("ahna_2017.RDS")
 trending <- readRDS("ahna_trending.RDS") 
 ```
 
+Each data set has the following parameters:
+
+|Field|Description|Scale|
+|:-----|:------|:--------|
+|danceability|suitability for dancing, combination of tempo, beat strength, and rhythm stability|0:1|
+|energy|measure of intensity and activity|0:1|
+|loudness|overall loudness, measured in decibels|-60:0|
+|speechiness|presence of spoken words in a track|0:1|
+|acousticness|how acoustic a track is|0:1|
+|instrumentalness|predicts vocals in a track|0:1|
+|liveness|detects presence of an audience in a track|0:1|
+|valence|describes the musical positiveness of a track|0:1|
+|track.popularity|rates the overall popularity of a track|0:100|
+|track.name|specifies the title of the track|none|
+
 ## Data Filtering
 
 Here, I am selecting the factors I want to examine, rescaling each factor (0:100), and dropping any NA values.
 
-*The "track.popularity" column will be introduced in the Conclusion section.*
+*The "track.popularity" and "track.name" columns will be introduced in the Conclusion section.*
 
 ```{r}
 new_2021 <- my_2021 %>%
@@ -207,7 +209,7 @@ sd_trending %>%
   mutate(factor = fct_reorder(factor, standard_deviation)) %>% #reordering data by standard deviation
   ggplot(aes(x = factor, y = standard_deviation, fill = factor)) +
   geom_bar(stat = "identity", width = 0.2) +
-  labs(x = "Factor", y = "Standard Deviation", title = "Standard Deviation of Each Factor (Trending)") +
+  labs(x = "Factor", y = "Standard Deviation", title = "Standard Deviation of Each Factor, Trending") +
   coord_flip() +
   theme_minimal() +
   theme(
@@ -222,7 +224,7 @@ What is a good score for danceability of a popular song? What about energy? Live
 Due to the standard deviations being so high, I will divide them into subgroups to provide a more strict scale. The peak value for scoring is one-fifth of a standard deviation from the mean, and decreases as it furthers from the mean value. The absolute value of the score is taken into account for the total score. The negative values signify if the value was above or below the mean.
 
 |Number of Standard Deviations from the Mean|Score|
-|:-:|:-:|:-:|:-:|:-:|
+|:---|:----|:---|:---|:----|
 |1/5|5|
 |1/4|4|
 |1/3|3|
@@ -266,13 +268,18 @@ scoring <- function(value, mean, sd_value) { #function accepts the mean value fo
     return(0)
   }
 }
+
+total <- function(a,b,c,d,e,f,g) { #function accepts the scores and returns the sum of their absolute values
+  sum = sum(abs(a), abs(b), abs(c), abs(d), abs(e), abs(f), abs(g))
+  return(sum)
+}
 ```
 
 ## Calculations
 
 ### Example using trending playlist
 
-Because the scoring is calculated based off of the mean values of the trending songs, the trending playlist has a perfect score of 40, as seen here:
+Because the scoring is calculated based off of the mean values of the trending songs, the trending playlist has a perfect score of 35, as seen here:
 
 ```{r}
 scores_trending <- c(
@@ -285,7 +292,7 @@ scores_trending <- c(
   g <- scoring(mean(new_trending[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
 
-sum(abs(a), abs(b), abs(c), abs(d), abs(e), abs(f), abs(g))
+total(a,b,c,d,e,f,g)
 
 ```
 
@@ -301,7 +308,7 @@ scores_2017 <- c( #runs each factor into the scoring algorithm and assigns the v
   f_2017 <- scoring(mean(new_2017[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
   g_2017 <- scoring(mean(new_2017[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-sum_2017 <- sum(abs(a_2017), abs(b_2017), abs(c_2017), abs(d_2017), abs(e_2017), abs(f_2017), abs(g_2017))
+sum_2017 <- total(a_2017, b_2017, c_2017, d_2017, e_2017, f_2017, g_2017)
 ```
 
 
@@ -317,7 +324,7 @@ scores_2018 <- c(
   f_2018 <- scoring(mean(new_2018[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
   g_2018 <- scoring(mean(new_2018[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-sum_2018 <- sum(abs(a_2018), abs(b_2018), abs(c_2018), abs(d_2018), abs(e_2018), abs(f_2018), abs(g_2018))
+sum_2018 <- total(a_2018, b_2018, c_2018, d_2018, e_2018, f_2018, g_2018)
 ```
 
 ### The year of questionable decisions: 2019
@@ -332,7 +339,7 @@ scores_2019 <- c(
   f_2019 <- scoring(mean(new_2019[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
   g_2019 <- scoring(mean(new_2019[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-sum_2019 <- sum(abs(a_2019), abs(b_2019), abs(c_2019), abs(d_2019), abs(e_2019), abs(f_2019), abs(g_2019))
+sum_2019 <- total(a_2019, b_2019, c_2019, d_2019, e_2019, f_2019, g_2019)
 ```
 
 ### The year of chaotic energy: 2020
@@ -347,7 +354,7 @@ scores_2020 <- c(
   f_2020 <- scoring(mean(new_2020[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
   g_2020 <- scoring(mean(new_2020[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-sum_2020 <- sum(abs(a_2020), abs(b_2020), abs(c_2020), abs(d_2020), abs(e_2020), abs(f_2020), abs(g_2020))
+sum_2020 <- total(a_2020, b_2020, c_2020, d_2020, e_2020, f_2020, g_2020)
 ```
 
 ### The year of immaculate vibes: 2021
@@ -362,7 +369,7 @@ scores_2021 <- c(
   f_2021 <- scoring(mean(new_2021[["liveness"]]), mean(new_trending[["liveness"]]), sd_trending[["liveness"]]),
   g_2021 <- scoring(mean(new_2021[["valence"]]), mean(new_trending[["valence"]]), sd_trending[["valence"]]))
 
-sum_2021 <- sum(abs(a_2021), abs(b_2021), abs(c_2021), abs(d_2021), abs(e_2021), abs(f_2021), abs(g_2021))
+sum_2021 <- total(a_2021, b_2021, c_2021, d_2021, e_2021, f_2021, g_2021)
 ```
 
 ## Findings
@@ -384,8 +391,8 @@ scores %>%
   mutate(factor = fct_reorder(factor, scores_2017)) %>% #reordering data by score
   ggplot() +
   geom_point(aes(x = factor, y = scores_2017), color = "black") +
-  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2017), color = "purple") +
-  labs(x = "Factor", y = "Score", title = "Score by Factor for 2017") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2017), color = "pink") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor, 2017") +
   coord_flip() +
   theme_minimal()
 ```
@@ -400,7 +407,7 @@ scores %>%
   ggplot() +
   geom_point(aes(x = factor, y = scores_2018), color = "black") +
   geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2018), color = "purple") +
-  labs(x = "Factor", y = "Score", title = "Score by Factor for 2018") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor, 2018") +
   coord_flip() +
   theme_minimal()
 ```
@@ -414,13 +421,13 @@ scores %>%
   mutate(factor = fct_reorder(factor, scores_2019)) %>% #reordering data by score
   ggplot() +
   geom_point(aes(x = factor, y = scores_2019), color = "black") +
-  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2019), color = "purple") +
-  labs(x = "Factor", y = "Score", title = "Score by Factor for 2019") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2019), color = "blue") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor, 2019") +
   coord_flip() +
   theme_minimal()
 ```
 
-Surprisingly, the year of questionable decisions (2019), did not score low. With a score of 24 out of the possible 35, this playlist was mainly brought down by the lower-than-average acousticness and the higher-than-average loudness values. Juice WRLD would be proud.
+Surprisingly, the year of questionable decisions (2019), did not score in last place. With a score of 24 out of the possible 35, this playlist was mainly brought down by the lower-than-average acousticness and the higher-than-average loudness values. Juice WRLD would be proud.
 
 ### The year of chaotic energy: 2020
 
@@ -430,8 +437,8 @@ scores %>%
   mutate(factor = fct_reorder(factor, scores_2020)) %>% #reordering data by score
   ggplot() +
   geom_point(aes(x = factor, y = scores_2020), color = "black") +
-  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2020), color = "purple") +
-  labs(x = "Factor", y = "Score", title = "Score by Factor for 2020") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2020), color = "green") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor, 2020") +
   coord_flip() +
   theme_minimal()
 ```
@@ -445,8 +452,8 @@ scores %>%
   mutate(factor = fct_reorder(factor, scores_2021)) %>% #reordering data by score
   ggplot() +
   geom_point(aes(x = factor, y = scores_2021), color = "black") +
-  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2021), color = "purple") +
-  labs(x = "Factor", y = "Score", title = "Score by Factor for 2021") +
+  geom_segment(aes(x = factor, xend = factor, y = 0, yend = scores_2021), color = "orange") +
+  labs(x = "Factor", y = "Score", title = "Score by Factor, 2021") +
   coord_flip() +
   theme_minimal()
 ```
@@ -473,7 +480,7 @@ scores %>%
   coord_flip()
   
 ```
-In the above visualization, the most consistent factor was valence amongst each year. This means that for every year excluding 2017, the overall "vibe" was happy and upbeat. Besides this factor, there is no correlation between years for the other factors.
+In the above visualization, the most consistent factor by year was valence. This means that for every year excluding 2017, the overall "vibe" was happy and upbeat. Besides this factor, there is no correlation between years for the other factors.
 
 
 ### Relationship between each year and total scores
@@ -489,7 +496,7 @@ sum_scores <- data.frame( #creates a dataframe for total score by year
 sum_scores %>%
   ggplot(aes(x = year, y = score)) +
   geom_line(color = "grey") +
-  geom_point(color = "black", fill = "purple", shape = 21, size = 3) +
+  geom_point(color = "black", fill = "pink", shape = 21, size = 2) +
   labs(x = "Year", y = "Score", title = "Total Score by Year") +
   theme_minimal()
 ```
@@ -521,8 +528,7 @@ sum_scaled <- data.frame( #rescales the sum_scores dataframe from 0 to 100 for e
 ```{r}
 ggplot() +
   geom_line(data = popularity_rating, aes(x = year, y = rating), color = "black") +
-  geom_line(data = sum_scaled, aes(x = year, y = score), color = "purple") +
-  geom_line(data = )
+  geom_line(data = sum_scaled, aes(x = year, y = score), color = "blue") +
   theme_minimal() +
   labs(x = "Year", y = "Rating (out of 100)", title = "Popularity Rating and Total Score by Year")
 ```
@@ -533,8 +539,44 @@ From the above visualization, it can be seen that the popularity rating (in blac
 
 Objectively speaking based off of my calculations, yes. My music taste correlated the most with what is currently popular today in 2018. From there it has gotten progressively worse in relation to trending music today. This can be attributed to me straying from what plays on the radio to exclusively listening to what I find on Spotify.  
 
+## For fun
 
+### What is the best song on all of my playlists?
 
+```{r}
+my_songs <- merge(merge(merge(merge(new_2017, new_2018, all = T), #merging each year into one large dataframe
+                                    new_2019, all = T), 
+                                    new_2020, all = T), 
+                                    new_2021, all = T)
 
+my_songs <- my_songs %>% #mutating the above dataframe to include columns with each factor's respective score
+  mutate(
+    score_danceability = mapply(scoring, my_songs$danceability, mean(new_trending$danceability), sd_trending$danceability),
+    score_energy = mapply(scoring, my_songs$energy, mean(new_trending$energy), sd_trending$energy),
+    score_loudness = mapply(scoring, my_songs$loudness, mean(new_trending$loudness), sd_trending$loudness),
+    score_speechiness = mapply(scoring, my_songs$speechiness, mean(new_trending$speechiness), sd_trending$speechiness),
+    score_acousticness = mapply(scoring, my_songs$acousticness, mean(new_trending$acousticness), sd_trending$acousticness),
+    score_instrumentalness = mapply(scoring, my_songs$instrumentalness, mean(new_trending$instrumentalness), sd_trending$instrumentalness),
+    score_liveness = mapply(scoring, my_songs$liveness, mean(new_trending$liveness), sd_trending$liveness),
+    score_valence = mapply(scoring, my_songs$valence, mean(new_trending$valence), sd_trending$valence),
+    final_score = mapply(total, score_danceability, score_energy, score_loudness, score_speechiness, score_acousticness, score_liveness, score_valence))
 
+my_songs %>% 
+  arrange(desc(final_score)) %>% #arranging the dataframe by descending final score
+  select(track.name, final_score) %>% 
+  head(2)
+
+```
+The highest score for an individual song out of all of my playlists was a 25. There was a tie for this top spot between the songs "Something Like This" and "Let You Down".
+
+## Popularity vs Score by Song
+
+```{r}
+my_songs %>% 
+  ggplot() +
+  geom_point(aes(x = track.popularity, y = final_score), color = "pink") +
+  theme_minimal() +
+  labs(x = "Popularity Rating", y = "Total Score", title = "Popularity Rating and Total Score")
+```
+There is no trend between a track's popularity and how well it scores on the scale I have created. This is likely because the track.popularity parameter does not take into account any of the audio features of the song (only the actual popularity of that song), while my scale depends solely on audio features of songs that are already popular.
 
